@@ -90,5 +90,24 @@
       </link>
     </model>
 
+    <model name='green_goal_dot'>
+      <pose>0.0 -4.0 0.05 0 0 0</pose>
+      <static>true</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><sphere><radius>0.03</radius></sphere></geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry><sphere><radius>0.03</radius></sphere></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
+            <emissive>0 1 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
   </world>
 </sdf>
