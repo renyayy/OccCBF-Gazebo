@@ -11,7 +11,7 @@ def generate_launch_description():
     # 各種ファイルのパス
     urdf_file = os.path.join(pkg_share, 'urdf', 'simple_holonomic_robot.urdf')
     obs_sdf_file = os.path.join(pkg_share, 'models', 'moving_cylinder.sdf')
-    world_file = os.path.join(pkg_share, 'worlds', 'occlusion.world')
+    world_file = os.path.join(pkg_share, 'worlds', 'simple_world.world')  # 新しいシンプルなworld
 
     return LaunchDescription([
         # 1. Gazeboの起動
