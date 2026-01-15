@@ -1,74 +1,85 @@
 #!/usr/bin/env python3
+"""
+障害物コントローラー (Obstacle Controller)
+
+指定した2点間(y_min, y_max)を往復運動する障害物を制御します。
+/obstacle/odom から位置を取得し、/obstacle/cmd_vel で速度指令を送ります。
+/obstacle/state で障害物情報を Publish（CBFノード用）。
+"""
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-import math
+from geometry_msgs.msg import Twist
+
 
 class ObstacleController(Node):
     def __init__(self):
         super().__init__('obstacle_controller')
         
-        # Publisher for velocity commands
-        self.publisher_ = self.create_publisher(Twist, '/obstacle/cmd_vel', 10)
+        # パラメータ設定
+        self.declare_parameter('y_min', -3.0)
+        self.declare_parameter('y_max', 3.0)
+        self.declare_parameter('speed', 0.5)
+        self.declare_parameter('radius', 0.3)
         
-        # Subscriber for odometry
-        self.subscription = self.create_subscription(
-            Odometry,
-            '/obstacle/odom',
-            self.odom_callback,
-            10)
+        self.y_min = self.get_parameter('y_min').value
+        self.y_max = self.get_parameter('y_max').value
+        self.speed = self.get_parameter('speed').value
+        self.radius = self.get_parameter('radius').value
         
-        # Timer for the main control loop
-        timer_period = 0.1  # 10Hz
-        self.timer = self.create_timer(timer_period, self.control_loop)
-
-        # Target and current state
-        self.start_pos = [-2.0, -2.0]
-        self.target_pos = [2.0, -2.0]
-        self.current_pos = None
-        self.is_moving = True
-        self.speed = 0.1  # Linear speed in m/s
-        self.tolerance = 0.1 # Distance tolerance to stop
-
-        self.get_logger().info('Obstacle Controller Started')
-        self.get_logger().info(f'Moving from {self.start_pos} to {self.target_pos}')
-
+        # 内部状態
+        self.current_state = None  # Odometry メッセージ全体を保持
+        self.direction = 1  # 1: +y方向, -1: -y方向
+        
+        # ROS 2 通信
+        self.odom_sub = self.create_subscription(
+            Odometry, '/obstacle/odom', self.odom_callback, 10)
+        self.cmd_vel_pub = self.create_publisher(
+            Twist, '/obstacle/cmd_vel', 10)
+        self.state_pub = self.create_publisher(
+            Odometry, '/obstacle/state', 10)
+        
+        # 制御ループ (20Hz)
+        self.create_timer(0.05, self.control_loop)
+        
+        self.get_logger().info(
+            f'Obstacle Controller started\n'
+            f'  Y range: [{self.y_min}, {self.y_max}]\n'
+            f'  Speed: {self.speed} m/s, Radius: {self.radius} m'
+        )
+    
     def odom_callback(self, msg):
-        """Callback to update the current position from odometry."""
-        self.current_pos = msg.pose.pose.position
-
+        """オドメトリ受信"""
+        self.current_state = msg
+    
     def control_loop(self):
-        """Main control loop to move the obstacle."""
-        if self.current_pos is None or not self.is_moving:
-            return
-
-        # Calculate vector to target
-        dx = self.target_pos[0] - self.current_pos.x
-        dy = self.target_pos[1] - self.current_pos.y
+        """制御ループ: 反射判定 → 速度指令 → 状態Publish"""
+        if self.current_state is None:
+            return  # オドメトリ未受信
         
-        # Calculate distance to target
-        distance = math.sqrt(dx**2 + dy**2)
-
-        # Check if the target is reached
-        if distance < self.tolerance:
-            self.is_moving = False
-            self.get_logger().info('Target reached.')
-            # Send a final stop command
-            stop_msg = Twist()
-            self.publisher_.publish(stop_msg)
-            return
-
-        # Normalize the direction vector
-        vx = (dx / distance) * self.speed
-        vy = (dy / distance) * self.speed
+        # 現在のy座標
+        y = self.current_state.pose.pose.position.y
         
-        # Create and publish the Twist message
-        msg = Twist()
-        msg.linear.x = vx
-        msg.linear.y = vy
-        msg.angular.z = 0.0
-        self.publisher_.publish(msg)
+        # 反射境界での方向反転
+        if y >= self.y_max and self.direction > 0:
+            self.direction = -1
+        elif y <= self.y_min and self.direction < 0:
+            self.direction = 1
+        
+        # 速度指令
+        cmd = Twist()
+        cmd.linear.y = self.speed * self.direction
+        self.cmd_vel_pub.publish(cmd)
+        
+        # 状態Publish (CBFノード用)
+        state = Odometry()
+        state.header.stamp = self.get_clock().now().to_msg()
+        state.header.frame_id = 'world'
+        state.child_frame_id = 'moving_cylinder'
+        state.pose.pose = self.current_state.pose.pose
+        state.twist.twist.linear.y = self.speed * self.direction
+        self.state_pub.publish(state)
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -78,13 +89,9 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
-        # Ensure the obstacle stops when the node is shut down
-        stop_msg = Twist()
-        # The publisher might be gone if shutdown is abrupt
-        if node.publisher_ and node.publisher_.is_valid:
-            node.publisher_.publish(stop_msg)
         node.destroy_node()
         rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()
