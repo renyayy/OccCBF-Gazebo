@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="multi_obstacle_world">
+    <include><uri>model://sun</uri></include>
+    <include><uri>model://ground_plane</uri></include>
+
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose>3.0 0.0 15.0 0 1.5708 0</pose>
+        <view_controller>orbit</view_controller>
+      </camera>
+    </gui>
+
+    <model name='goal_marker'>
+      <pose>6.0 -2.0 0.01 0 0 0</pose>
+      <static>true</static>
+      <link name='link'>
+        <visual name='vis'>
+          <geometry><sphere><radius>0.15</radius></sphere></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <physics name='default_physics' default='0' type='ode'>
+      <gravity>0 0 -9.8</gravity>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+  </world>
+</sdf>
