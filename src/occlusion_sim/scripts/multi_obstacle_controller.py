@@ -25,6 +25,10 @@ class MultiObstacleController(Node):
                       'state': None},
             'obs_2': {'mode': 1, 'v_max': 0.3, 'theta': random.uniform(-math.pi, math.pi),
                       'state': None},
+            'obs_3': {'mode': 1, 'v_max': 0.3, 'theta': random.uniform(-math.pi, math.pi),
+                      'state': None},
+            'obs_4': {'mode': 1, 'v_max': 0.3, 'theta': random.uniform(-math.pi, math.pi),
+                      'state': None},
         }
         self.radius = 0.3
         

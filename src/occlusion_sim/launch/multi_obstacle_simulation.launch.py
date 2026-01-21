@@ -13,6 +13,8 @@ def generate_launch_description():
         {'name': 'obs_0', 'x': 3.0, 'y': -2.0},
         {'name': 'obs_1', 'x': 5.0, 'y': 1.0},
         {'name': 'obs_2', 'x': 4.0, 'y': -1.0},
+        {'name': 'obs_3', 'x': 2.0, 'y': 3.0},
+        {'name': 'obs_4', 'x': 6.0, 'y': -3.0},
     ]
 
     ld = LaunchDescription([
