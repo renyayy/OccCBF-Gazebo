@@ -1,18 +1,30 @@
 # Gazebo simulator (Occlusion-CBF)
+## Enter container
+```bash
+xhost +local:docker
+
+docker run -itd \
+--net=host \
+-e DISPLAY \
+-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+-v /home/renyayy/Dev/OccCBF/Gazebo_ws:/root/Gazebo_ws \
+--name Gazebo_ws \
+renya/tb3-nav2:latest
+```
 
 ## Build
 ```bash
-cd ~/Dev/occlusion_sim_ws
-colcon build --packages-select occlusion_sim
+cd ~/root/Gazebo_ws
+colcon build --packages-select occlusion_sim --symlink-install
 source install/setup.bash
 ```
 
 ## Execute
 ```bash
-# Launch経由（推奨）
-ros2 launch occlusion_sim mvp_simulation.launch.py
+# Launch
+ros2 launch occlusion_sim multi_obstacle_simulation.launch.py
 
-# または個別実行
+# 個別実行
 ros2 run occlusion_sim cbf_wrapper_node.py
 ```
 

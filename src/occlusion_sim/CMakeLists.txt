@@ -31,7 +31,6 @@ install(
 )
 
 install(PROGRAMS
-  scripts/obstacle_controller.py
   scripts/simulation_supervisor.py
   scripts/cbf_wrapper_node.py
   scripts/multi_obstacle_controller.py
