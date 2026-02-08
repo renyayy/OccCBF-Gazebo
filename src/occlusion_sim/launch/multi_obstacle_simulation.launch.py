@@ -21,7 +21,7 @@ def generate_launch_description():
 
     ld = LaunchDescription([
         ExecuteProcess(
-            cmd=['gazebo', '--verbose', world, '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so'],
+            cmd=['gzserver', '--verbose', world, '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so'],
             output='screen'
         ),
         # Ego robot spawn at start position (1.0, 7.5)
