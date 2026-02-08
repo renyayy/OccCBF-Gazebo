@@ -30,7 +30,7 @@ class CBFWrapperNode(Node):
         # 制御パラメータ
         self.dt = 0.05
         self.goal = np.array([[20.0], [7.5], [0.0]])
-        self.obstacle_radius = 0.25
+        self.obstacle_radius = 0.3
 
         self.robot_spec = {
             'model': 'DoubleIntegrator2D',
