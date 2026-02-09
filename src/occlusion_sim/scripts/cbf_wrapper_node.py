@@ -137,12 +137,15 @@ class CBFWrapperNode(Node):
             visible_obs_np[:, 0] - self.X[0, 0],
             visible_obs_np[:, 1] - self.X[1, 0]
         ))) if len(visible_obs_np) > 0 else float('inf')
+        intervention = getattr(self.controller, 'last_intervention', '-')
+        status = getattr(self.controller, 'status', '-')
+        n_constraints = getattr(self.controller, 'last_num_constraints', '-')
         self.get_logger().info(
             f'Obs: {visible_count}/{total_obs}'
-            f' | CBF: {self.controller.last_intervention} [{self.controller.status}]'
+            f' | CBF: {intervention} [{status}]'
             f' | Δu: {u_diff:.3f}'
             f' | MinDist: {min_dist:.2f}'
-            f' | Constraints: {self.controller.last_num_constraints}',
+            f' | Constraints: {n_constraints}',
             throttle_duration_sec=0.1
         )
 
