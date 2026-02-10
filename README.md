@@ -36,30 +36,58 @@ source install/setup.bash
 ```
 
 ## Execute
+
+統一launchファイル `gazebo_sim.launch.py` でシナリオ・モードを指定して実行:
+
 ```bash
-# Launch
-ros2 launch occlusion_sim multi_obstacle_simulation.launch.py
+# DI モード（デフォルト）
+ros2 launch occlusion_sim gazebo_sim.launch.py scenario:=multi_random
+ros2 launch occlusion_sim gazebo_sim.launch.py scenario:=corner_popout
 
-# 個別実行
-ros2 run occlusion_sim cbf_wrapper_node.py
+# Unicycle モード（TurtleBot3 Burger）
+ros2 launch occlusion_sim gazebo_sim.launch.py scenario:=corner_popout mode:=unicycle
+
+# bag録画なし
+ros2 launch occlusion_sim gazebo_sim.launch.py scenario:=corner_popout record_bag:=false
+
+# 実験ID指定 → experiments/gazebo_di/<id>/ に保存
+ros2 launch occlusion_sim gazebo_sim.launch.py scenario:=corner_popout experiment_id:=test_001
 ```
 
-## Select Controller 
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `scenario` | `multi_random` | シナリオ名 (`multi_random`, `corner_popout`) |
+| `mode` | `di` | `di`=ホロノミック, `unicycle`=TurtleBot3 |
+| `record_bag` | `true` | rosbag自動記録の有無 |
+| `experiment_id` | タイムスタンプ | 実験ID（bag保存先サブディレクトリ名） |
+| `bag_output_dir` | `/root/Gazebo_ws/experiments` | bag出力ルート |
+
+旧launchファイル（レガシー）:
+```bash
+ros2 launch occlusion_sim multi_obstacle_simulation.launch.py   # 5障害物ランダムウォーク
+ros2 launch occlusion_sim single_obstacle_simulation.launch.py  # 1障害物追跡
+```
+
+### シナリオ一覧
+
+| 名前 | 説明 | フィールド |
+|------|------|-----------|
+| `multi_random` | 5障害物ランダムウォーク | 24x13m |
+| `corner_popout` | 壁の死角から障害物が飛び出す | 5x5m |
+
+シナリオの追加方法は [scenarios/README.md](src/occlusion_sim/scripts/scenarios/README.md) を参照。
+
+**Unicycle モードの構成:**
+- CBFコントローラ → `/di_cmd_vel` (DI座標系の速度指令)
+- `cmd_vel_converter` → `/cmd_vel` (Unicycle入力 $v, \omega$ に変換)
+
+## Select Controller
 `cbf_wrapper_node.py` 内でコメントアウトを切り替え:
-
-```python
-# Controller選択 (使用する Controller をコメント解除) 
-self.controller = CBFQP(...)              # 基本CBF-QP
-# self.controller = BackupCBFQP(...)      # バックアップCBF-QP (遮蔽対応)
-# self.controller = MPCCBF(...)           # MPC-CBF
-# self.controller = OptimalDecayCBFQP(...)# 最適減衰CBF-QP
-# self.controller = OptimalDecayMPCCBF(...)# 最適減衰MPC-CBF
-```
 
 | コントローラー | 特徴 |
 |--------------|------|
 | CBFQP | 基本CBF-QP |
-| BackupCBFQP | 遮蔽対応、動的障害物向け |
+| BackupCBFQP | 遮蔽対応、動的障害物向け (デフォルト) |
 | MPCCBF | MPC+CBF |
 | OptimalDecayCBFQP | 安全マージン動的調整 |
 | OptimalDecayMPCCBF | MPC版最適減衰 |
@@ -75,52 +103,16 @@ self.controller = CBFQP(...)              # 基本CBF-QP
 | `gazebo` | `unicycle` | Gazebo / TurtleBot3 Unicycle |
 | `real` | `unicycle` | 実機 / TurtleBot3 |
 
-### 1a. Gazebo実験（シミュレーション + bag自動記録）
+### 1. Python数値シミュレーション
 ```bash
-# multi obstacle シナリオ（デフォルト → experiments/gazebo_di/<id>/ に保存）
-ros2 launch occlusion_sim experiment.launch.py experiment_id:=test_001
-
-# single obstacle シナリオ
-ros2 launch occlusion_sim experiment.launch.py experiment_id:=test_001 scenario:=single
-```
-
-### 1a'. DI vs Unicycle 比較実験（Corner Pop-out シナリオ）
-
-壁の死角から障害物が飛び出すシナリオで、DI（理想モデル）と Unicycle（TurtleBot3）の挙動を比較する。
-
-```bash
-# DI モード（ホロノミックロボット）→ experiments/gazebo_di/<id>/
-ros2 launch occlusion_sim experiment_comparison.launch.py mode:=di experiment_id:=corner_001
-
-# Unicycle モード（TurtleBot3 Burger）→ experiments/gazebo_unicycle/<id>/
-ros2 launch occlusion_sim experiment_comparison.launch.py mode:=unicycle experiment_id:=corner_001
-
-# bag記録なし
-ros2 launch occlusion_sim experiment_comparison.launch.py mode:=unicycle record_bag:=false
-```
-
-| 引数 | デフォルト | 説明 |
-|------|-----------|------|
-| `mode` | `di` | `di`=ホロノミック, `unicycle`=TurtleBot3 |
-| `experiment_id` | タイムスタンプ | 実験ID（bag保存先サブディレクトリ名） |
-| `record_bag` | `true` | rosbag自動記録の有無 |
-
-**Unicycle モードの構成:**
-- CBFコントローラ → `/di_cmd_vel` (DI座標系の速度指令)
-- `cmd_vel_converter` → `/cmd_vel` (Unicycle入力 $v, \omega$ に変換)
-- 角度誤差が大きい場合はその場旋回し、向きが揃ってから前進する
-
-### 1b. Python数値シミュレーション
-```bash
-python3 src/occlusion_sim/analysis/run_numerical_sim.py -o experiments/python_di/test_001
-
-# シミュレーション時間を指定
-python3 src/occlusion_sim/analysis/run_numerical_sim.py -o experiments/python_di/test_001 --tf 120
+python3 src/occlusion_sim/analysis/run_numerical_sim.py --scenario corner_popout -o experiments/python_di/corner_001
+python3 src/occlusion_sim/analysis/run_numerical_sim.py --scenario multi_random -o experiments/python_di/multi_001 --tf 120
 ```
 
 CSV + `result.json`（outcome/duration）が出力される。
 
 ### 2. 解析（プロット生成）
+
 ```bash
 # Gazebo bag
 python3 src/occlusion_sim/analysis/plot_experiment.py experiments/gazebo_di/test_001
@@ -140,7 +132,7 @@ rosbag/CSV を自動判定。結果判定（goal_reached / collision / timeout�
 | `min_distance.png` | 障害物との最小距離の時系列 |
 | `tracking_error.png` | 制御追従誤差 \|\|u - u_ref\|\| |
 
-### 3. 比較（Python sim vs Gazebo）
+### 3. 比較
 ```bash
 python3 src/occlusion_sim/analysis/compare_experiments.py \
   experiments/python_di/test_001/cbf_debug.csv \
