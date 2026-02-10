@@ -7,7 +7,10 @@ from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float64MultiArray, MultiArrayDimension
+import math
 import numpy as np
+
+import sim_config
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 safe_control_path = os.path.join(current_dir, '..', 'safe_control')
@@ -26,20 +29,27 @@ class CBFWrapperNode(Node):
     def __init__(self):
         super().__init__('cbf_wrapper_node')
 
-        # 制御パラメータ
-        self.dt = 0.05  # タイマー周期 (初期値・フォールバック)
-        self.last_time = None  # sim time ベース dt 計算用
-        self.goal = np.array([[20.0], [7.5], [0.0]])
-        self.obstacle_radius = 0.3
+        # ROS パラメータ
+        self.declare_parameter('v_max', sim_config.ROBOT_V_MAX)
+        self.declare_parameter('a_max', sim_config.ROBOT_A_MAX)
+        self.declare_parameter('goal_x', sim_config.DEFAULT_GOAL[0])
+        self.declare_parameter('goal_y', sim_config.DEFAULT_GOAL[1])
+        self.declare_parameter('body_frame_odom', False)
 
-        self.robot_spec = {
-            'model': 'DoubleIntegrator2D',
-            'v_max': 1.0,
-            'a_max': 1.0,
-            'radius': 0.25,
-            'sensing_range': 10.0,
-            'backup_cbf': {'T_horizon': 2.0, 'dt_backup': 0.05, 'alpha': 1.0},
-        }
+        # 制御パラメータ
+        self.dt = sim_config.DT
+        self.last_time = None
+        self.goal = np.array([
+            [self.get_parameter('goal_x').value],
+            [self.get_parameter('goal_y').value],
+            [0.0]
+        ])
+        self.body_frame_odom = self.get_parameter('body_frame_odom').value
+        self.obstacle_radius = sim_config.OBSTACLE_RADIUS
+
+        v_max = self.get_parameter('v_max').value
+        a_max = self.get_parameter('a_max').value
+        self.robot_spec = sim_config.make_robot_spec(v_max, a_max)
 
         # ロボットモデル
         self.robot = DoubleIntegrator2D(self.dt, self.robot_spec)
@@ -79,8 +89,18 @@ class CBFWrapperNode(Node):
         """エゴロボットの状態 (位置・速度) を更新"""
         self.X[0, 0] = msg.pose.pose.position.x
         self.X[1, 0] = msg.pose.pose.position.y
-        self.X[2, 0] = msg.twist.twist.linear.x
-        self.X[3, 0] = msg.twist.twist.linear.y
+
+        if self.body_frame_odom:
+            # Unicycle: body frame → world frame 変換
+            q = msg.pose.pose.orientation
+            yaw = math.atan2(2.0 * (q.w * q.z + q.x * q.y),
+                             1.0 - 2.0 * (q.y * q.y + q.z * q.z))
+            v_body = msg.twist.twist.linear.x
+            self.X[2, 0] = v_body * math.cos(yaw)
+            self.X[3, 0] = v_body * math.sin(yaw)
+        else:
+            self.X[2, 0] = msg.twist.twist.linear.x
+            self.X[3, 0] = msg.twist.twist.linear.y
         self.odom_received = True
 
     def obs_cb(self, msg):
@@ -112,7 +132,7 @@ class CBFWrapperNode(Node):
 
         # ゴール到達判定
         dist = np.hypot(self.goal[0, 0] - self.X[0, 0], self.goal[1, 0] - self.X[1, 0])
-        if dist < 0.3:
+        if dist < sim_config.GOAL_THRESHOLD:
             if not self.goal_reached:
                 self.get_logger().info(f'Goal reached! (distance: {dist:.3f}m)')
                 self.goal_reached = True

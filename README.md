@@ -1,20 +1,36 @@
 # Gazebo simulator (Occlusion-CBF)
-## Enter container
+## Run container
 ```bash
 xhost +local:docker
 
 docker run -itd \
 --net=host \
 -e DISPLAY \
+--gpus all \
+-e NVIDIA_DRIVER_CAPABILITIES=all \
 -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 -v /home/renyayy/Dev/OccCBF/Gazebo_ws:/root/Gazebo_ws \
 --name Gazebo_ws \
 gazebo-ros2_nav2
 ```
 
+## Setup (コンテナ初回)
+```bash
+cd /root/Gazebo_ws
+git submodule update --init --recursive
+# source .venv/bin/activate
+pip install -e src/occlusion_sim/safe_control
+export TURTLEBOT3_MODEL=burger
+```
+
+## Enter container
+```bash
+docker exec -it Gazebo_ws_tb3 bash
+```
+
 ## Build
 ```bash
-cd ~/root/Gazebo_ws
+cd /root/Gazebo_ws
 colcon build --packages-select occlusion_sim --symlink-install
 source install/setup.bash
 ```
@@ -67,6 +83,32 @@ ros2 launch occlusion_sim experiment.launch.py experiment_id:=test_001
 # single obstacle シナリオ
 ros2 launch occlusion_sim experiment.launch.py experiment_id:=test_001 scenario:=single
 ```
+
+### 1a'. DI vs Unicycle 比較実験（Corner Pop-out シナリオ）
+
+壁の死角から障害物が飛び出すシナリオで、DI（理想モデル）と Unicycle（TurtleBot3）の挙動を比較する。
+
+```bash
+# DI モード（ホロノミックロボット）→ experiments/gazebo_di/<id>/
+ros2 launch occlusion_sim experiment_comparison.launch.py mode:=di experiment_id:=corner_001
+
+# Unicycle モード（TurtleBot3 Burger）→ experiments/gazebo_unicycle/<id>/
+ros2 launch occlusion_sim experiment_comparison.launch.py mode:=unicycle experiment_id:=corner_001
+
+# bag記録なし
+ros2 launch occlusion_sim experiment_comparison.launch.py mode:=unicycle record_bag:=false
+```
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `mode` | `di` | `di`=ホロノミック, `unicycle`=TurtleBot3 |
+| `experiment_id` | タイムスタンプ | 実験ID（bag保存先サブディレクトリ名） |
+| `record_bag` | `true` | rosbag自動記録の有無 |
+
+**Unicycle モードの構成:**
+- CBFコントローラ → `/di_cmd_vel` (DI座標系の速度指令)
+- `cmd_vel_converter` → `/cmd_vel` (Unicycle入力 $v, \omega$ に変換)
+- 角度誤差が大きい場合はその場旋回し、向きが揃ってから前進する
 
 ### 1b. Python数値シミュレーション
 ```bash
