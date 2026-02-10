@@ -1,7 +1,11 @@
 install/
 build/
 log/
+experiments/
 .docs/
 .venv/
 CLAUDE.md
 *.log
+__pycache__/
+*.pyc
+*.pyo
