@@ -58,7 +58,8 @@ def generate_launch_description():
 
     world = os.path.join(pkg, 'worlds', sc['gazebo']['world_file'])
     urdf_holonomic = os.path.join(pkg, 'urdf', 'simple_holonomic_robot.urdf')
-    rviz_config = os.path.join(pkg, 'rviz', 'sensor_viz.rviz')
+    rviz_config = os.path.join(pkg, 'rviz',
+        'sensor_viz_unicycle.rviz' if use_unicycle else 'sensor_viz.rviz')
     sim_time_param = {'use_sim_time': True}
 
     mode_lc = LaunchConfiguration('mode')
@@ -178,6 +179,7 @@ def generate_launch_description():
             'env_x_max': env_cfg['x_max'],
             'env_y_min': env_cfg['y_min'],
             'env_y_max': env_cfg['y_max'],
+            'robot_model': 'unicycle' if use_unicycle else 'holonomic',
         }],
         output='screen'))
 

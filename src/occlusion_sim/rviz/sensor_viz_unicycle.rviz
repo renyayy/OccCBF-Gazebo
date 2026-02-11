@@ -39,9 +39,21 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        base_footprint:
+          Value: true
         base_link:
           Value: true
+        base_scan:
+          Value: true
+        caster_back_link:
+          Value: true
+        imu_link:
+          Value: true
         odom:
+          Value: true
+        wheel_left_link:
+          Value: true
+        wheel_right_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -50,10 +62,79 @@ Visualization Manager:
       Show Names: false
       Tree:
         odom:
-          base_link:
-            {}
+          base_footprint:
+            base_link:
+              base_scan:
+                {}
+              caster_back_link:
+                {}
+              imu_link:
+                {}
+              wheel_left_link:
+                {}
+              wheel_right_link:
+                {}
       Update Interval: 0
       Value: true
+    - Alpha: 1
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot_description
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_scan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        caster_back_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        wheel_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Mass Properties:
+        Inertia: false
+        Mass: false
+      Name: RobotModel
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
     - Class: rviz_default_plugins/Marker
       Enabled: true
       Name: FoV Fill
@@ -170,10 +251,10 @@ Visualization Manager:
         Value: /sensor_viz/ground
       Value: true
     - Class: rviz_default_plugins/Marker
-      Enabled: true
+      Enabled: false
       Name: Ego Robot
       Namespaces:
-        ego_robot: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -181,7 +262,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /sensor_viz/ego_robot
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -200,25 +281,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 9.222882270812988
+      Distance: 6.838078498840332
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 2.5739753246307373
-        Y: 1.8007416725158691
-        Z: -1.7859342098236084
+        X: 2.4590580463409424
+        Y: 2.761176824569702
+        Z: -1.4835236072540283
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.544796347618103
+      Pitch: 0.9997968673706055
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz_default_plugins)
-      Yaw: 4.699997901916504
+      Yaw: 4.704996585845947
     Saved: ~
 Window Geometry:
   Displays:

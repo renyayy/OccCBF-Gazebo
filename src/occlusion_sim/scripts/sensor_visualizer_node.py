@@ -27,6 +27,8 @@ class SensorVisualizerNode(Node):
         self.declare_parameter('env_x_max', sim_config.ENV_X_MAX)
         self.declare_parameter('env_y_min', sim_config.ENV_Y_MIN)
         self.declare_parameter('env_y_max', sim_config.ENV_Y_MAX)
+        self.declare_parameter('robot_model', 'holonomic')
+        self.is_unicycle = self.get_parameter('robot_model').value == 'unicycle'
 
         self.sensing_range = sim_config.SENSING_RANGE
         self.robot_radius = sim_config.ROBOT_RADIUS
@@ -103,7 +105,8 @@ class SensorVisualizerNode(Node):
         self.publish_start_goal_markers()
         self.publish_boundary_marker()
         self.publish_ground_marker()
-        self.publish_ego_robot_marker()
+        if not self.is_unicycle:
+            self.publish_ego_robot_marker()
 
     def publish_sensing_range_marker(self):
         marker = Marker()
