@@ -123,6 +123,44 @@ python3 src/occlusion_sim/analysis/plot_experiment.py experiments/gazebo_unicycl
 
 出力: `h_trajectory.png`, `min_distance.png`, `tracking_error.png`
 
+### バッチ実験 (`run_batch_experiment.py`)
+
+複数モード・複数回の実験を連続実行し、結果を集計する。
+
+```bash
+# モード比較（1回ずつ、従来動作）
+python3 src/occlusion_sim/scripts/run_batch_experiment.py --scenario corner_popout --modes di,unicycle
+
+# 同一条件を10回繰り返し（統計分析用）
+python3 src/occlusion_sim/scripts/run_batch_experiment.py --scenario corner_popout --modes di --runs 10
+
+# 実験ID指定 + 複数モード × 5回
+python3 src/occlusion_sim/scripts/run_batch_experiment.py --scenario corner_popout --modes di,unicycle --runs 5 --experiment-id stat_001
+```
+
+| 引数 | デフォルト | 説明 |
+|------|-----------|------|
+| `--scenario` | `corner_popout` | シナリオ名 |
+| `--modes` | `di,unicycle` | カンマ区切りのモードリスト |
+| `--runs` | `1` | 各モードの実行回数 |
+| `--experiment-id` | `batch_<timestamp>` | 実験ID |
+| `--timeout` | `30.0` | シミュレーションタイムアウト(秒) |
+| `--gui` | off | Gazebo GUI表示 |
+
+`--runs 1` は各実験後に `plot_experiment.py` を自動実行。`--runs > 1` はプロットをスキップし、集計統計（成功率・衝突率・平均所要時間±標準偏差）を表示する。結果は `experiments/<experiment_id>_summary.csv` に出力。
+
+出力ディレクトリ構造:
+```
+# --runs 1
+experiments/gazebo_di/<experiment_id>/
+
+# --runs N>1
+experiments/gazebo_di/<experiment_id>/run_001/
+experiments/gazebo_di/<experiment_id>/run_002/
+...
+experiments/<experiment_id>_summary.csv
+```
+
 ### 比較
 ```bash
 python3 src/occlusion_sim/analysis/compare_experiments.py \
