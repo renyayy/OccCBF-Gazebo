@@ -33,6 +33,7 @@ class CBFWrapperNode(Node):
         self.declare_parameter('goal_x', sim_config.DEFAULT_GOAL[0])
         self.declare_parameter('goal_y', sim_config.DEFAULT_GOAL[1])
         self.declare_parameter('body_frame_odom', False)
+        self.declare_parameter('sensing_range', sim_config.SENSING_RANGE)
         self.declare_parameter('scenario_name', 'multi_random')
         self.declare_parameter('auto_shutdown', False)
         self.declare_parameter('sim_timeout', 30.0)
@@ -61,7 +62,9 @@ class CBFWrapperNode(Node):
         v_max = self.get_parameter('v_max').value
         a_max = self.get_parameter('a_max').value
         robot_radius = self.get_parameter('robot_radius').value
-        self.robot_spec = sim_config.make_robot_spec(v_max, a_max, radius=robot_radius)
+        sensing_range = self.get_parameter('sensing_range').value
+        self.robot_spec = sim_config.make_robot_spec(v_max, a_max, radius=robot_radius,
+                                                     sensing_range=sensing_range)
 
         # ロボットモデル
         self.robot = DoubleIntegrator2D(self.dt, self.robot_spec)

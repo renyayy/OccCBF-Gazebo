@@ -45,12 +45,13 @@ def collision_dist(robot_radius, obstacle_radius):
     return robot_radius + obstacle_radius
 
 
-def make_robot_spec(v_max=ROBOT_V_MAX, a_max=ROBOT_A_MAX, radius=ROBOT_RADIUS):
+def make_robot_spec(v_max=ROBOT_V_MAX, a_max=ROBOT_A_MAX, radius=ROBOT_RADIUS,
+                    sensing_range=SENSING_RANGE):
     """robot_spec dict を生成（cbf_wrapper / sensor_visualizer 共用）"""
     return {
         'model': 'DoubleIntegrator2D',
         'v_max': v_max, 'a_max': a_max,
         'radius': radius,
-        'sensing_range': SENSING_RANGE,
+        'sensing_range': sensing_range,
         'backup_cbf': dict(BACKUP_CBF_PARAMS),
     }

@@ -30,13 +30,14 @@ class SensorVisualizerNode(Node):
         self.declare_parameter('env_y_max', sim_config.ENV_Y_MAX)
         self.declare_parameter('robot_model', 'holonomic')
         self.declare_parameter('robot_radius', sim_config.ROBOT_RADIUS)
+        self.declare_parameter('sensing_range', sim_config.SENSING_RANGE)
         self.declare_parameter('scenario_name', 'multi_random')
 
         robot_model = self.get_parameter('robot_model').value
         self.is_tb3 = (robot_model == 'tb3')
         self.is_unicycle_color = (robot_model == 'unicycle')
 
-        self.sensing_range = sim_config.SENSING_RANGE
+        self.sensing_range = self.get_parameter('sensing_range').value
         self.robot_radius = self.get_parameter('robot_radius').value
 
         # 障害物名→半径マップ (シナリオ設定から構築)
@@ -47,7 +48,8 @@ class SensorVisualizerNode(Node):
             for o in sc.get('obstacles', [])
         }
 
-        self.robot_spec = sim_config.make_robot_spec(radius=self.robot_radius)
+        self.robot_spec = sim_config.make_robot_spec(radius=self.robot_radius,
+                                                     sensing_range=self.sensing_range)
         self.robot = DoubleIntegrator2D(sim_config.DT, self.robot_spec)
 
         self.occlusion_manager = OcclusionUtils(

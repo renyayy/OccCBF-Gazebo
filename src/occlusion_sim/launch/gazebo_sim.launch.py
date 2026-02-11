@@ -64,6 +64,7 @@ def generate_launch_description():
     robot_cfg = sc['robot']
 
     # モード別ロボットパラメータ
+    sensing_range = robot_cfg.get('sensing_range', sim_config.SENSING_RANGE)
     if is_tb3:
         robot_v_max = sim_config.TB3_V_MAX
         robot_radius = sim_config.TB3_ROBOT_RADIUS
@@ -158,6 +159,7 @@ def generate_launch_description():
         'v_max': robot_v_max,
         'a_max': robot_a_max,
         'robot_radius': robot_radius,
+        'sensing_range': sensing_range,
         'scenario_name': scenario_name,
         'body_frame_odom': body_frame_odom,
         'auto_shutdown': auto_shutdown == 'true',
@@ -185,6 +187,7 @@ def generate_launch_description():
         'env_y_max': env_cfg['y_max'],
         'robot_model': robot_model_str,
         'robot_radius': robot_radius,
+        'sensing_range': sensing_range,
         'scenario_name': scenario_name,
     }
 
