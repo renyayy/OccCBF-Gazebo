@@ -20,7 +20,6 @@ SCENARIO = {
         {'name': 'obs_3', 'position': (14.0, 11.0), 'radius': 0.3, 'v_max': 0.5, 'behavior': 'random_walk'},
         {'name': 'obs_4', 'position': (16.0, 7.0), 'radius': 0.3, 'v_max': 0.5, 'behavior': 'random_walk'},
     ],
-    'walls': [],
     'cbf': {
         'T_horizon': 2.0,
         'dt_backup': 0.05,

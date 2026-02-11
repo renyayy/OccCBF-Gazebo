@@ -16,24 +16,6 @@
       </camera>
     </gui>
 
-    <!-- 壁 (2.0x2.0x1.0m): 占有領域 x:[2.5,4.5], y:[1.5,3.5] -->
-    <model name='corner_wall'>
-      <pose>3.5 2.5 0.5 0 0 0</pose>
-      <static>true</static>
-      <link name='link'>
-        <collision name='collision'>
-          <geometry><box><size>2.0 2.0 1.0</size></box></geometry>
-        </collision>
-        <visual name='visual'>
-          <geometry><box><size>2.0 2.0 1.0</size></box></geometry>
-          <material>
-            <ambient>0.7 0.7 0.7 1</ambient>
-            <diffuse>0.7 0.7 0.7 1</diffuse>
-          </material>
-        </visual>
-      </link>
-    </model>
-
     <!-- ゴール地点 (5.0, 1.0) -->
     <model name='goal_marker'>
       <pose>5.0 1.0 0.01 0 0 0</pose>

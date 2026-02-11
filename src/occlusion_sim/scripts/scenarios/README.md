@@ -48,7 +48,7 @@ python3 src/occlusion_sim/analysis/run_numerical_sim.py \
 | 名前 | 説明 | フィールド |
 |------|------|-----------|
 | `multi_random` | 5障害物ランダムウォーク | 24x13m |
-| `corner_popout` | 壁の死角から障害物が飛び出す | 5x5m |
+| `corner_popout` | 障害物がエゴ経路を斜めに横切る | 5x5m |
 
 ## 新しいシナリオの作り方
 
@@ -79,18 +79,6 @@ SCENARIO = {
             'behavior': 'random_walk',   # random_walk | chase | waypoint | static
         },
     ],
-    'walls': [
-        {
-            'name': 'wall_1',
-            'center': (5.0, 7.0),        # Gazebo box の中心
-            'size': (3.0, 1.0, 1.0),     # Gazebo box のサイズ (x, y, z)
-            'circles': [                  # Python sim 用の円近似 (衝突+遮蔽)
-                (4.0, 6.5, 0.3),
-                (5.0, 6.5, 0.3),
-                (6.0, 6.5, 0.3),
-            ],
-        },
-    ],
     'cbf': {
         'T_horizon': 2.0,
         'dt_backup': 0.05,
@@ -112,9 +100,9 @@ from scenarios import my_scenario
 SCENARIOS['my_scenario'] = my_scenario.SCENARIO
 ```
 
-### 3. Gazebo用 world ファイルを作成 (壁がある場合)
+### 3. Gazebo用 world ファイルを作成
 
-`worlds/my_world.world` に壁の box モデルを配置。`experiment_corner.world` を参考に。
+`worlds/my_world.world` を作成。`experiment_corner.world` を参考に。
 
 ### 4. CMakeLists.txt は変更不要
 
@@ -136,7 +124,6 @@ SCENARIO
 ├── env          # 環境範囲 (x_min, x_max, y_min, y_max)
 ├── robot        # エゴロボット (start, goal, radius, v_max, a_max, sensing_range)
 ├── obstacles[]  # 動的障害物リスト (name, position, radius, v_max, behavior, ...)
-├── walls[]      # 静的壁リスト (name, center, size, circles)
 ├── cbf          # CBFパラメータ (T_horizon, dt_backup, alpha)
 ├── seed         # 乱数シード (optional, default=42)
 └── gazebo       # Gazebo固有設定 (world_file)

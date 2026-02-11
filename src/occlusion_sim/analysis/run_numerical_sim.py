@@ -217,14 +217,6 @@ def build_from_scenario(scenario_name):
             obs_meta.append({'mode': 0, 'v_max': 0.0, 'theta': 0.0})
         obs_index += 1
 
-    # 壁の円近似 → 静的障害物として追加
-    for wall in sc.get('walls', []):
-        y_min = env_cfg['y_min']
-        y_max = env_cfg['y_max']
-        for cx, cy, cr in wall.get('circles', []):
-            obs_data.append([cx, cy, cr, 0.0, 0.0, y_min, y_max, 0])
-            obs_meta.append({'mode': 0, 'v_max': 0.0, 'theta': 0.0})
-
     known_obs = np.array(obs_data, dtype=float) if obs_data else np.empty((0, 8))
 
     return {
