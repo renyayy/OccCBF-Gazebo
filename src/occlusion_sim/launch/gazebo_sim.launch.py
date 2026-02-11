@@ -283,7 +283,7 @@ def generate_launch_description():
             cmd=['ros2', 'bag', 'record',
                  '-o', PathJoinSubstitution([bag_output_dir, bag_subdir, experiment_id]),
                  '/cmd_vel', '/di_cmd_vel', '/odom', '/obstacle/state',
-                 '/cbf_debug_info', '/tf'],
+                 '/cbf_debug_info', '/sim_start', '/tf'],
             output='screen',
             condition=IfCondition(record_bag),
         )],

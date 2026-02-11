@@ -7,6 +7,8 @@ import rclpy
 import math
 import random
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Empty
+from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
 import sim_config
 from obstacle_controller_base import ObstacleControllerBase
 from scenarios import load_scenario
@@ -69,6 +71,13 @@ class ScenarioObstacleController(ObstacleControllerBase):
             self.create_subscription(Odometry, '/odom', self._ego_odom_cb, 10)
 
         self._all_obs_ready = False
+        self._sim_started = False
+        _latch_qos = QoSProfile(
+            depth=1,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            reliability=ReliabilityPolicy.RELIABLE,
+        )
+        self.create_subscription(Empty, '/sim_start', self._sim_start_cb, _latch_qos)
         self.get_logger().info(f'Scenario Controller: {len(obs_names)} obstacles')
 
     def _odom_cb(self, msg, name):
@@ -81,6 +90,11 @@ class ScenarioObstacleController(ObstacleControllerBase):
         self._ego_x = msg.pose.pose.position.x
         self._ego_y = msg.pose.pose.position.y
 
+    def _sim_start_cb(self, msg):
+        if not self._sim_started:
+            self._sim_started = True
+            self.get_logger().info('Received /sim_start — obstacles start moving')
+
     def control_loop(self):
         # 全障害物のスポーン完了を待機
         if not self._all_obs_ready:
@@ -89,14 +103,23 @@ class ScenarioObstacleController(ObstacleControllerBase):
                 self.get_logger().info(
                     f'Waiting for spawns: {ready}/{len(self.obs_states)}',
                     throttle_duration_sec=1.0)
-                # スポーン待ちでも state は発行 (cbf_wrapper_node の待機解除用)
-                for name in self.obs_states:
-                    state = self.obs_states[name]
-                    if state is not None:
-                        self.publish_state(name, state.pose.pose, 0.0, 0.0)
-                return
-            self._all_obs_ready = True
-            self.get_logger().info('All obstacles spawned, starting control')
+            else:
+                self._all_obs_ready = True
+                self.get_logger().info('All obstacles spawned, waiting for /sim_start')
+            # スポーン待ちでも state は発行 (cbf_wrapper_node の待機解除用)
+            for name in self.obs_states:
+                state = self.obs_states[name]
+                if state is not None:
+                    self.publish_state(name, state.pose.pose, 0.0, 0.0)
+            return
+
+        # /sim_start 受信まで障害物を動かさない
+        if not self._sim_started:
+            for name in self.obs_states:
+                state = self.obs_states[name]
+                if state is not None:
+                    self.publish_state(name, state.pose.pose, 0.0, 0.0)
+            return
 
         for name, beh in self._obs_behaviors.items():
             state = self.obs_states.get(name)

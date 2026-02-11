@@ -8,7 +8,8 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
-from std_msgs.msg import Float64MultiArray, MultiArrayDimension
+from std_msgs.msg import Empty, Float64MultiArray, MultiArrayDimension
+from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
 
 import sim_config  # safe_control パスも設定される
 
@@ -97,6 +98,13 @@ class CBFWrapperNode(Node):
         self.create_subscription(Odometry, '/obstacle/state', self.obs_cb, 10)
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
         self.debug_pub = self.create_publisher(Float64MultiArray, '/cbf_debug_info', 10)
+        _latch_qos = QoSProfile(
+            depth=1,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            reliability=ReliabilityPolicy.RELIABLE,
+        )
+        self.sim_start_pub = self.create_publisher(Empty, '/sim_start', _latch_qos)
+        self._sim_started = False
         self.create_timer(self.dt, self.control_loop)
 
         self.get_logger().info('CBF Wrapper Node started')
@@ -118,8 +126,6 @@ class CBFWrapperNode(Node):
             self.X[2, 0] = msg.twist.twist.linear.x
             self.X[3, 0] = msg.twist.twist.linear.y
         self.odom_received = True
-        if self.sim_start_time is None:
-            self.sim_start_time = self.get_clock().now()
 
     def obs_cb(self, msg):
         """障害物の状態を更新"""
@@ -160,7 +166,13 @@ class CBFWrapperNode(Node):
                     throttle_duration_sec=1.0)
                 return
             self._all_obs_ready = True
-            self.get_logger().info('All obstacles ready, starting control')
+
+        # /sim_start を発行してエゴ・障害物を同時開始
+        if not self._sim_started:
+            self.sim_start_pub.publish(Empty())
+            self.sim_start_time = self.get_clock().now()
+            self._sim_started = True
+            self.get_logger().info('Published /sim_start — ego + obstacles start simultaneously')
 
         # sim time ベースで dt を動的計算
         now = self.get_clock().now()
