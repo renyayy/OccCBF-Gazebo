@@ -133,8 +133,8 @@ def main():
             bag_subdir, result = run_single(
                 args.scenario, mode, run_id, args.timeout, args.gui, args.experiments_dir)
             all_results.append((mode, run_idx, result))
-            print('Waiting 5s for cleanup...')
-            time.sleep(5)
+            print('Waiting 3s for cleanup...')
+            time.sleep(3)
 
     # 解析（runs=1のみ）
     if args.runs == 1:
