@@ -36,6 +36,7 @@ DEFAULT_START = (1.0, 7.5)
 
 # --- Collision ---
 GOAL_THRESHOLD = 0.3
+COLLISION_MARGIN = 0.001  # 1mm: CBFはh=0(接触面)を許容するため、近接を衝突として検出
 
 # --- Backup CBF ---
 BACKUP_CBF_PARAMS = {'T_horizon': 2.0, 'dt_backup': 0.05, 'alpha': 1.0}

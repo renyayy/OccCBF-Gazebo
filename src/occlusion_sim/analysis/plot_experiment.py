@@ -37,7 +37,8 @@ N_VISIBLE = 15; N_TOTAL = 16
 
 DEFAULT_ROBOT_RADIUS = 0.25
 DEFAULT_OBSTACLE_RADIUS = 0.25
-COLLISION_DIST = DEFAULT_ROBOT_RADIUS + DEFAULT_OBSTACLE_RADIUS
+COLLISION_MARGIN = 0.001  # 1mm margin (sim_config と同値)
+COLLISION_DIST = DEFAULT_ROBOT_RADIUS + DEFAULT_OBSTACLE_RADIUS + COLLISION_MARGIN
 GOAL_THRESHOLD = 0.3
 DEFAULT_SCENARIO = 'corner_popout'
 DEFAULT_GOAL = [4.5, 2.5]
@@ -263,7 +264,7 @@ def main():
         args.obstacle_radius = max(radii) if radii else DEFAULT_OBSTACLE_RADIUS
 
     global COLLISION_DIST
-    COLLISION_DIST = args.robot_radius + args.obstacle_radius
+    COLLISION_DIST = args.robot_radius + args.obstacle_radius + COLLISION_MARGIN
 
     output_dir = args.output or (os.path.dirname(args.data_path)
                                   if os.path.isfile(args.data_path)

@@ -34,7 +34,15 @@ h(x) = ||p_rel||² - d_min²    (h > 0 = safe)
 | corner_popout (di/uni) | 0.25 | 0.25 | 0.50 m |
 | corner_popout (tb3) | 0.105 | 0.25 | 0.355 m |
 
-計算箇所: `backup_cbf_qp.py:230`, `double_integrator2D.py:173`, `cbf_wrapper_node.py:193`
+**衝突判定マージン**: `COLLISION_MARGIN = 0.001` (1mm)
+
+CBF制約は連続時間で `h ≥ 0`（距離 ≥ d_min）を保証するが、Gazeboの離散時間物理エンジン（step=0.004s）と浮動小数点誤差により、d = d_min（接触面）に漸近的に到達し得る。この近接状態を衝突として検出するため、判定閾値に1mmのマージンを加算する。
+
+```
+衝突判定: d ≤ d_min + COLLISION_MARGIN (= d_min + 0.001)
+```
+
+計算箇所: `backup_cbf_qp.py:230`, `double_integrator2D.py:173`, `cbf_wrapper_node.py:220`
 
 ## Scenarios
 
